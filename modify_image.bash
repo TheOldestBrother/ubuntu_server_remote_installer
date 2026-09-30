@@ -41,6 +41,8 @@ patch_cloud_config() {
     passwd=$(tr -dc 'A-Za-z0-9!?&=.' < /dev/urandom | head -c 101)
     changes=""
 
+    echo $passwd > local-passwd.txt
+
     case "$1" in
         **/ubuntu-26\.*)
             changes="@@ -64,6 +64,9 @@"
@@ -59,7 +61,7 @@ patch_cloud_config() {
                 *)
                     echo "No Ubuntu version specified and could not determine version"
                     echo "from input file. Exiting program."
-            exit 1
+                    exit 1
             esac
     esac
 
@@ -79,7 +81,8 @@ $changes
 EOF
 }
 
-#TODO Add GPG Key Creation command if none is given.
+#IMPROVEMENT Add GPG Key creation command if none is given.
+#IMPROVEMENT Add SSH key creation command if none is given.
 
 while getopts "i:o:w:k:s:v:h" o; do
     case "${o}" in
@@ -163,7 +166,7 @@ sudo umount orig_disk
 
 # squash the modified files
 echo "squashing the modified installer file system"
-sudo rm -rf mod_disk/casper/${sqfs_file}
+sudo rm -rf mod_disk/casper/${sqfs_file} #FIXME Already deleted a few lines higher
 sudo mksquashfs new_sqfs mod_disk/casper/${sqfs_file}
 
 # update size file
@@ -178,13 +181,18 @@ sudo rm ${gpg_file}
 gpg --sign --yes --local-user ${gpg_key} --output /tmp/${sqfs_file}.gpg --detach-sign mod_disk/casper/${sqfs_file}
 sudo cp /tmp/${sqfs_file}.gpg ${gpg_file}
 
+#FIXME Delete tmp squash by using `mv` or deleting after
+
 # recompute md5 checksum
 echo "computing md5 checksum"
 cd mod_disk
 sudo sh -c "find -type f -print0 | sudo xargs -0 md5sum > md5sum.txt"
 cd ..
 
+#IMPROVEMENT Export the output to a file and make it executable to simplify usage.
+
 # print out command for creating new iso file
+
 xorriso_flags=`xorriso -indev ${ifile} -report_el_torito cmd | grep "^-" | sed 's/ [-][-]interval.*/\ EFI\.img/g' | sed 's/[=][-][-]interval.*/\=mbr\.img/g' | tr '\n' ' '`
 echo "now execute these commands:"
 echo "cd ${work_dir}"
