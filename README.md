@@ -36,3 +36,26 @@ of the script. That command will create the modified iso image.
 If you hit errors and end up with "unerasable" files, check with
 ``df`` for mounted loop file systems and ``sudo unmount`` the
 offending one.
+
+## Finally
+
+You first need to find the IP of the new device. For that you need to launch the installer. Then you can run Nmap to find devices in your local network that
+
+
+You can SSH into the new device with the installation running using : 
+
+```bash
+ssh -i <path/to/your/ssh-key> installer@<ip-of-new-device>
+```
+
+## Possible issues
+
+* Release file is <archive-url> not valid yet : 
+  The time from the local machine is not calibrated, you need to go to the `help` section on the top-right corner. Open a console and use this command to get the latest time : 
+
+  ```bash
+  $ sudo hwclock --hctosys
+  $ exit
+  ```
+
+  You can then use the `Try Again` button and it should pull the release files now
